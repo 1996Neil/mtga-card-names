@@ -18,7 +18,6 @@ Latest: **`data-2026.65.0-r1`**
 |---|---:|---|
 | `cards.jsonl.gz` | ~0.9 MB | one JSON object per Arena `GrpId`, gzipped |
 | `cards.jsonl` | ~8.9 MB | same, uncompressed |
-| `cards.mtgch.json` | ~118 KB | 大学院废墟 overlay used for this release |
 | `manifest.json` | ~2 KB | versions, counts, source hashes, file hashes |
 | `SHA256SUMS` | <1 KB | checksums for the release assets |
 
@@ -26,7 +25,8 @@ Counts for this release:
 
 - **27,720** rows (unique `grp_id`)
 - **27,720** with a Chinese name
-- **0** without — every row now has a verified Chinese name
+- **0** without a Chinese name
+- 468 of those names are community names from 大学院废墟 (`mtgch-zhs`); the rest are registry/client names. This is not a claim that every row is official or human-verified.
 - **1,342** tokens, **20,614** primary cards
 
 Download the assets from the repository's **Releases** page, verify
@@ -116,7 +116,8 @@ publishes the name projection.
 
 `tools/import_mtgch_names.py` reproduces the 大学院废墟 overlay; it only takes
 the name field, never rules text, and skips anything whose English name does
-not match exactly.
+not match exactly. The overlay is not a release asset; the merged names are in
+`cards.jsonl`.
 
 Card names may originate from the Arena client localization or community
 review; `status` describes compatibility, not translation accuracy.
