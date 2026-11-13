@@ -1,0 +1,36 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Python contract tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Python syntax
+        run: python3 -m py_compile tools/build_dataset.py tools/validate_dataset.py src/mtga_card_names.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Node syntax
+        run: node --check src/mtga-card-names.mjs
+      - name: Validate sample rows
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          rows = [json.loads(line) for line in Path("samples/cards.sample.jsonl").read_text(encoding="utf-8").splitlines() if line]
+          assert rows, "empty sample"
+          assert len({row["grp_id"] for row in rows}) == len(rows)
+          for row in rows:
+              assert row["en"]
+              assert row["name_source"] in {"registry", "baseline-titles", "17lands-snapshot", "none"}
+          print(f"sample rows: {len(rows)}")
+          PY

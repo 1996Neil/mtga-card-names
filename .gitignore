@@ -1,0 +1,10 @@
+dist/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Release artifacts are published via GitHub Releases, not committed.
+data/*.jsonl
+data/*.jsonl.gz
+data/manifest.json
+data/SHA256SUMS

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/1996Neil/mtga-card-names/schema/card-names.schema.json",
+  "title": "MTGA card-name row",
+  "description": "One row per Arena GrpId. zh=null means no verified Chinese name; never machine-translate. This is a names-only artifact.",
+  "type": "object",
+  "required": [
+    "grp_id",
+    "title_id",
+    "set",
+    "collector_number",
+    "is_primary",
+    "is_token",
+    "is_rebalanced",
+    "face_type",
+    "en",
+    "zh",
+    "display_enabled",
+    "deck_import_enabled",
+    "source",
+    "status",
+    "name_source"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "grp_id": { "type": "integer", "minimum": 1 },
+    "title_id": { "type": "integer", "minimum": 0 },
+    "set": { "type": "string", "maxLength": 16 },
+    "collector_number": { "type": "string", "maxLength": 32 },
+    "is_primary": { "type": "integer", "enum": [0, 1] },
+    "is_token": { "type": "integer", "enum": [0, 1] },
+    "is_rebalanced": { "type": "integer", "enum": [0, 1] },
+    "face_type": { "type": "integer", "minimum": 0 },
+    "en": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "zh": { "type": ["string", "null"], "maxLength": 128 },
+    "display_enabled": { "type": "integer", "enum": [0, 1] },
+    "deck_import_enabled": { "type": "integer", "enum": [0, 1] },
+    "source": { "type": "string", "maxLength": 128 },
+    "status": { "type": "string", "maxLength": 128 },
+    "name_source": {
+      "type": "string",
+      "enum": ["registry", "baseline-titles", "17lands-snapshot", "none"]
+    }
+  }
+}
