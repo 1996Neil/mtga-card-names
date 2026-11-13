@@ -39,7 +39,7 @@
     "status": { "type": "string", "maxLength": 128 },
     "name_source": {
       "type": "string",
-      "enum": ["registry", "baseline-titles", "17lands-snapshot", "none"]
+      "enum": ["registry", "baseline-titles", "17lands-snapshot", "mtgch-zhs", "none"]
     }
   }
 }

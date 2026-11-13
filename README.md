@@ -12,21 +12,22 @@ text, UI strings, source evidence, or game files.
 
 ## Data release
 
-Latest: **`data-2026.64.50-r5`**
+Latest: **`data-2026.65.0-r1`**
 
 | File | Size | Description |
 |---|---:|---|
 | `cards.jsonl.gz` | ~0.9 MB | one JSON object per Arena `GrpId`, gzipped |
-| `cards.jsonl` | ~8.8 MB | same, uncompressed |
+| `cards.jsonl` | ~8.9 MB | same, uncompressed |
+| `cards.mtgch.json` | ~118 KB | 大学院废墟 overlay used for this release |
 | `manifest.json` | ~2 KB | versions, counts, source hashes, file hashes |
 | `SHA256SUMS` | <1 KB | checksums for the release assets |
 
 Counts for this release:
 
-- **27,244** rows (unique `grp_id`)
-- **27,236** with a Chinese name
-- **8** without (templates / faces that have no localized title)
-- **1,314** tokens, **20,260** primary cards
+- **27,720** rows (unique `grp_id`)
+- **27,720** with a Chinese name
+- **0** without — every row now has a verified Chinese name
+- **1,342** tokens, **20,614** primary cards
 
 Download the assets from the repository's **Releases** page, verify
 `SHA256SUMS`, and pin both the release tag and the manifest hash.
@@ -58,7 +59,7 @@ Download the assets from the repository's **Releases** page, verify
 | `deck_import_enabled` | upstream deck-import flag |
 | `source` | where the row identity came from |
 | `status` | upstream compatibility status |
-| `name_source` | `registry`, `baseline-titles`, `17lands-snapshot`, or `none` |
+| `name_source` | `registry`, `baseline-titles`, `17lands-snapshot`, `mtgch-zhs`, or `none` |
 
 `zh: null` means **no verified Chinese name**. Consumers must fall back
 explicitly (show English or "not available"); do not machine-translate.
@@ -106,8 +107,16 @@ publishes the name projection.
 
 ## Sources
 
-- MTGA maintainer registry (`2026.64.50`, run `2026.64.50_20261021T054034265920Z`).
-- 17Lands-zh snapshot (2026-11-07) for the top-up rows/names.
+- MTGA maintainer registry (`2026.65.0`, run `2026.65.0_20261107T052725452543Z`).
+- [大学院废墟](https://mtgch.com) community Simplified Chinese names (`mtgch-zhs`):
+  468 names, matched by set + collector number and accepted only when the
+  English name was identical. This is where the Star Trek set (`TRK`), its
+  Commander set (`TRC`) and a few older gaps get their Chinese names.
+- 17Lands-zh snapshot (2026-11-07) for the previous top-up rows/names.
+
+`tools/import_mtgch_names.py` reproduces the 大学院废墟 overlay; it only takes
+the name field, never rules text, and skips anything whose English name does
+not match exactly.
 
 Card names may originate from the Arena client localization or community
 review; `status` describes compatibility, not translation accuracy.

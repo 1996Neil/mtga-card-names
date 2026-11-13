@@ -261,6 +261,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", type=Path, required=True)
     parser.add_argument("--lands", type=Path)
+    parser.add_argument("--lands-name", default="17lands-snapshot",
+                        help="source name recorded for the --lands overlay")
+    parser.add_argument("--lands-url", default="")
+    parser.add_argument("--lands-note", default="2026-11-07 top-up snapshot; not a complete game-build baseline")
     parser.add_argument("--titles", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--base-version", default="2026.64.50")
@@ -299,16 +303,19 @@ def main() -> None:
 
     if args.lands:
         lands = load_lands(args.lands)
-        filled_from_lands = overlay_names(rows, lands, "17lands-snapshot")
-        extra_lands = add_overlay_extras(rows, lands, "17lands-snapshot")
-        sources.append({
-            "name": "17lands-snapshot",
+        filled_from_lands = overlay_names(rows, lands, args.lands_name)
+        extra_lands = add_overlay_extras(rows, lands, args.lands_name)
+        entry = {
+            "name": args.lands_name,
             "sha256": sha256_file(args.lands),
             "rows": len(lands),
             "names_filled": filled_from_lands,
             "rows_added": extra_lands,
-            "note": "2026-11-07 top-up snapshot; not a complete game-build baseline",
-        })
+            "note": args.lands_note,
+        }
+        if args.lands_url:
+            entry["url"] = args.lands_url
+        sources.append(entry)
 
     ordered = [rows[grp_id] for grp_id in sorted(rows)]
     cards_path = args.out / "cards.jsonl"

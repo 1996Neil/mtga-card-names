@@ -23,7 +23,7 @@ FIELDS = {
     "is_rebalanced", "face_type", "en", "zh", "display_enabled",
     "deck_import_enabled", "source", "status", "name_source",
 }
-NAME_SOURCES = {"registry", "baseline-titles", "17lands-snapshot", "none"}
+NAME_SOURCES = {"registry", "baseline-titles", "17lands-snapshot", "mtgch-zhs", "none"}
 
 
 def sha256_file(path: Path) -> str:
