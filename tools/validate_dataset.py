@@ -55,23 +55,29 @@ def main() -> None:
         fail(errors, f"unexpected schema_version: {manifest.get('schema_version')!r}")
 
     files = manifest.get("files") or {}
-    for name in ("cards.jsonl", "cards.jsonl.gz"):
+    plain_path = args.data / "cards.jsonl"
+    gz_path = args.data / "cards.jsonl.gz"
+    if not plain_path.is_file() and not gz_path.is_file():
+        sys.exit(f"[error] missing cards.jsonl or cards.jsonl.gz in {args.data}")
+    for name, path in (("cards.jsonl", plain_path), ("cards.jsonl.gz", gz_path)):
+        if not path.is_file():
+            # A release consumer may download only one representation.
+            continue
         entry = files.get(name)
         if not entry:
             fail(errors, f"manifest missing file entry: {name}")
-            continue
-        path = args.data / name
-        if not path.is_file():
-            fail(errors, f"missing file: {name}")
             continue
         if path.stat().st_size != entry.get("bytes"):
             fail(errors, f"{name}: size mismatch")
         if sha256_file(path) != entry.get("sha256"):
             fail(errors, f"{name}: sha256 mismatch")
 
-    cards_path = args.data / "cards.jsonl"
-    if not cards_path.is_file():
-        sys.exit(f"[error] missing {cards_path}")
+    cards_path = plain_path
+    open_cards = None
+    if plain_path.is_file():
+        open_cards = plain_path.open(encoding="utf-8")
+    elif gz_path.is_file():
+        open_cards = gzip.open(gz_path, "rt", encoding="utf-8")
 
     seen: set[int] = set()
     rows = 0
@@ -79,7 +85,7 @@ def main() -> None:
     tokens = 0
     primary = 0
     by_source: dict[str, int] = {}
-    with cards_path.open(encoding="utf-8") as handle:
+    with open_cards as handle:
         for line_no, line in enumerate(handle, 1):
             if not line.strip():
                 continue
@@ -143,11 +149,10 @@ def main() -> None:
         if counts.get(key) != value:
             fail(errors, f"manifest counts.{key}: {counts.get(key)!r} != {value!r}")
 
-    # The gzip must decode to exactly the same bytes as cards.jsonl.
-    gz_path = args.data / "cards.jsonl.gz"
-    if gz_path.is_file():
+    # If both representations exist, they must decode to exactly the same bytes.
+    if plain_path.is_file() and gz_path.is_file():
         with gzip.open(gz_path, "rb") as handle:
-            if handle.read() != cards_path.read_bytes():
+            if handle.read() != plain_path.read_bytes():
                 fail(errors, "cards.jsonl.gz does not decode to cards.jsonl")
 
     if errors:
