@@ -105,7 +105,47 @@ publishes the name projection.
   2026-11-07 17Lands snapshot. It is not a complete new-game-build baseline;
   the manifest records the exact sources.
 
-## Sources
+## Lightweight application update channel
+
+`updates/latest.json` is a small version manifest (currently **64 bytes**).
+The desktop app reads it once per startup, without using the release API or
+hashing its full installed index. Unchanged versions need no further request.
+
+New stable `data-*` releases trigger **Publish lightweight name updates**.
+The publisher compares the old and new names-only releases once and commits:
+
+- immutable `updates/patches/<sha256>.json.gz`: only changed/new name rows and
+  removed identities, with explicit `from` / `to` versions;
+- the small `updates/latest.json` version chain.
+
+This is a separate delivery channel; existing full release assets stay immutable.
+The initial channel baseline is `2026.65.0-r1`, already bundled by the consumer.
+There is no initial full-package download. Old clients without a retained path
+keep their working names; they never silently fall back to downloading the full
+release. The channel retains at most 64 version edges and a 4 MiB compressed
+catch-up budget; each patch is limited to 2 MiB compressed / 16 MiB expanded.
+
+Release operators publish normal stable name releases as before. The workflow
+generates and validates the delta automatically. If the release was created by
+another workflow using `GITHUB_TOKEN` (which does not trigger new workflows), run
+**Publish lightweight name updates** manually with that release tag. It also
+supports catch-up after a failed run. Advance missed versions in release order;
+the tool rejects versions that roll back the stable channel. Drafts and
+prereleases are never accepted. Commits use ordinary fast-forward pushes.
+
+Offline reproduction:
+
+```sh
+python3 tools/update_channel.py --data first-release --out channel
+python3 tools/update_channel.py --data next-release --previous first-release --out channel
+python3 -m unittest discover -s tests -v
+```
+
+The app validates only downloaded changes, applies a complete version chain in
+one SQLite transaction and closes its short-lived worker afterward. The
+publisher's full-release validation runs at publication time, not on clients.
+
+## Data provenance
 
 - MTGA maintainer registry (`2026.65.0`, run `2026.65.0_20261107T052725452543Z`).
 - [大学院废墟](https://mtgch.com) community Simplified Chinese names (`mtgch-zhs`):

@@ -1,0 +1,45 @@
+name: Publish lightweight name updates
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Published immutable data tag, e.g. data-2026.65.0-r2"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: names-update-channel
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'data-')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generate version delta (no registry or game data)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DATA_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: python3 tools/publish_update_channel.py "$DATA_TAG"
+      - name: Validate channel and immutable patches
+        run: python3 -m unittest discover -s tests -v
+      - name: Publish channel with a fast-forward commit
+        run: |
+          git add -- updates/
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "data: publish lightweight name delta"
+          git push origin HEAD:main
